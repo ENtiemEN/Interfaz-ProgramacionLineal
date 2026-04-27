@@ -129,6 +129,10 @@ def solve(problem: Problem) -> Solution:
         basis[pivot_row] = entering
         iteration += 1
 
+    # Marcar el último pivot como decisivo
+    if steps:
+        steps[-1].is_decisive = True
+
     # Tableau final
     steps.append(SimplexStep(
         iteration=iteration,

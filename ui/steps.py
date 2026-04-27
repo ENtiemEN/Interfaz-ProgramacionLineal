@@ -9,13 +9,20 @@ def show_steps(solution: Solution):
         st.info("No hay pasos disponibles.")
         return
 
-    st.subheader("Iteraciones del Método Simplex")
-
     for step in solution.steps:
         is_final = step.entering is None
-        label = f"Iteración {step.iteration}" if not is_final else f"Tableau final (iteración {step.iteration})"
+        is_decisive = getattr(step, "is_decisive", False)
 
-        with st.expander(label, expanded=(step.iteration == 0)):
+        if is_final:
+            label = f"Tableau final (iteración {step.iteration})"
+        elif is_decisive:
+            label = f"⭐ Iteración decisiva — Iteración {step.iteration}"
+        else:
+            label = f"Iteración {step.iteration}"
+
+        with st.expander(label, expanded=(step.iteration == 0 or is_decisive)):
+            if is_decisive:
+                st.success("⭐ Esta iteración produjo la base óptima final.")
             if step.entering:
                 st.markdown(
                     f"**Variable entrante:** `{step.entering}` &nbsp;|&nbsp; "

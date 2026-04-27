@@ -29,6 +29,7 @@ class SimplexStep:
     leaving: str | None = None
     pivot_row: int | None = None
     pivot_col: int | None = None
+    is_decisive: bool = False
 
 
 @dataclass

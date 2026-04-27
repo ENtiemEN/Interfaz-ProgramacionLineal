@@ -40,3 +40,33 @@ def objective_to_latex(cx: float, cy: float, objective: str) -> str:
 
     expr = " ".join(terms) if terms else "0"
     return rf"{obj} \; f(x,y) = {expr}"
+
+
+def problem_to_latex(cx: float, cy: float, objective: str, constraints: list) -> str:
+    obj_kw = r"\max" if objective == "maximize" else r"\min"
+
+    def _fmt(coef, var, is_first):
+        abs_c = abs(coef)
+        abs_s = str(int(abs_c)) if abs_c == int(abs_c) else f"{abs_c:g}"
+        coef_str = var if abs_c == 1 else f"{abs_s}{var}"
+        if is_first:
+            return coef_str if coef >= 0 else f"-{coef_str}"
+        return f"+ {coef_str}" if coef >= 0 else f"- {coef_str}"
+
+    terms = []
+    if cx != 0:
+        terms.append(_fmt(cx, "x", True))
+    if cy != 0:
+        terms.append(_fmt(cy, "y", len(terms) == 0))
+    obj_expr = " ".join(terms) if terms else "0"
+
+    lines = [r"\begin{array}{ll}"]
+    lines.append(rf"{obj_kw} & f(x,y) = {obj_expr} \\[4pt]")
+    for i, c in enumerate(constraints):
+        prefix = r"\text{s.a.}" if i == 0 else ""
+        c_latex = constraint_to_latex(c.a, c.b, c.op, c.rhs)
+        sep = r" \\" if i < len(constraints) - 1 else r" \\[4pt]"
+        lines.append(rf"{prefix} & {c_latex}{sep}")
+    lines.append(r"& x,\, y \geq 0")
+    lines.append(r"\end{array}")
+    return "\n".join(lines)
