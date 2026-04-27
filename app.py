@@ -5,6 +5,7 @@ from solver.models import Problem, Constraint
 from solver.simplex import solve
 from ui.graph import build_graph
 from ui.steps import show_steps
+from ui.latex_helpers import constraint_to_latex, objective_to_latex
 
 st.set_page_config(
     page_title="Solver PL 2 Variables",
@@ -142,6 +143,7 @@ with left:
         c1, c2 = st.columns(2)
         cx = c1.number_input("cx", value=3.0)
         cy = c2.number_input("cy", value=5.0)
+        st.latex(objective_to_latex(cx, cy, objective))
 
         st.divider()
         st.markdown("📦 **Restricciones**")
@@ -160,6 +162,7 @@ with left:
                 rhs = r4.number_input("rhs", value=rhs_d, key=f"rhs{i}")
 
                 constraints_input.append(Constraint(a=a,b=b,op=op,rhs=rhs))
+                st.latex(constraint_to_latex(a, b, op, rhs))
 
         colA, colB = st.columns(2)
         if colA.button("➕ Agregar", use_container_width=True):
@@ -200,8 +203,72 @@ if solve_btn:
 with right:
 
     if not st.session_state.solution:
+        st.markdown(
+            "<h2 style='text-align:center; margin: 8px 0 4px 0'>📐 Solver de Programación Lineal</h2>",
+            unsafe_allow_html=True
+        )
+        st.markdown(
+            "<p style='text-align:center; color: rgba(160,160,160,0.9); margin-bottom: 20px'>"
+            "Optimiza problemas de 2 variables con el Método Simplex</p>",
+            unsafe_allow_html=True
+        )
+
         with st.container(border=True):
-            st.info("👈 Configura el problema y presiona 🚀 Resolver")
+            st.markdown("#### ¿Qué hace esta aplicación?")
+            st.markdown(
+                "Esta herramienta resuelve problemas de **programación lineal de 2 variables** "
+                "usando el **Método Simplex**. Dado un conjunto de restricciones lineales "
+                "y una función objetivo, encuentra el punto $(x^*, y^*)$ que maximiza o minimiza "
+                "dicha función dentro de la región factible."
+            )
+            st.latex(r"""
+\begin{aligned}
+\max / \min \; & f(x, y) = c_x x + c_y y \\
+\text{s.a.} \; & a_i x + b_i y \;\leq/\geq/=\; r_i \quad \forall\, i \\
+& x,\, y \geq 0
+\end{aligned}
+""")
+
+        with st.container(border=True):
+            st.markdown("#### El Método Simplex — pasos")
+            col_steps, col_formula = st.columns([3, 2])
+            with col_steps:
+                st.markdown("""
+1. **Estandarizar**: agregar variables de holgura $s_i \\geq 0$ para convertir desigualdades en igualdades.
+2. **Tableau inicial**: construir la tabla con la función objetivo en la última fila.
+3. **Variable entrante**: elegir la columna con coeficiente más negativo en la fila objetivo (regla de Dantzig).
+4. **Variable saliente**: aplicar la prueba de razón mínima (*min-ratio test*).
+5. **Pivoteo**: hacer cero todos los elementos de la columna entrante salvo el pivote.
+6. **Iterar** hasta que no haya coeficientes negativos en la fila objetivo.
+7. **Leer solución**: los valores en la columna RHS son la solución óptima $x^*, y^*$.
+""")
+            with col_formula:
+                st.markdown("**Forma estándar:**")
+                st.latex(r"""
+\begin{aligned}
+\min \; & c^T x \\
+\text{s.a.} \; & Ax = b \\
+& x \geq 0
+\end{aligned}
+""")
+                st.markdown("**Tableau:**")
+                st.latex(r"""
+\begin{array}{c|c}
+B^{-1}N & B^{-1}b \\
+\hline
+c_N^T - c_B^T B^{-1}N & z^*
+\end{array}
+""")
+
+        with st.container(border=True):
+            st.markdown("#### Cómo usar la aplicación")
+            st.markdown("""
+1. Ingresa los coeficientes $c_x$ y $c_y$ de la función objetivo y elige **Maximizar** o **Minimizar**.
+2. Define cada restricción con sus coeficientes $a$, $b$, el operador y el lado derecho $r$.
+3. Presiona **🚀 Resolver** — el resultado aparecerá aquí.
+4. Explora la **región factible** en la gráfica y cada **iteración del tableau** en los pasos.
+5. Guarda el problema en el historial con **💾 Guardar**.
+""")
 
     else:
         sol = st.session_state.solution
